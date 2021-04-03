@@ -22,9 +22,10 @@ Using only Jumbo Sacks would allow FaytheBot to not have any island setup but wo
 
 ## Steps
 
-1. Move to specified location
-2. Wait for Hypixel to send a message that a user has requested a trade
-3. Check if the requested trade is from the correct user
-4. Check that the user has put the correct items into the bots inventory
-5. Accept trade
-6. Put items into jumbo sacs
+1. Wait for user to teleport to island
+2. If user is not in the user specified for the trade kick them out of the island
+3. Wait for Hypixel to send a message that a user has requested a trade
+4. Check if the requested trade is from the correct user
+5. Check that the user has put the correct items into the bots inventory
+6. Accept trade
+7. Put items into jumbo sacs
