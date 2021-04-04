@@ -1,0 +1,39 @@
+{
+  "chestArr0": {
+    "0": {
+      "0": {
+        "0": "Cobblestone",
+        "1": "Cobblestone",
+        "2": "Dirt",
+        "3": "Dirt"
+      },
+      "1": {
+        "0": "Sand",
+        "1": "Sand",
+        "2": "Gravel",
+        "3": "Gravel"
+      },
+      "2": {
+        "0": "Stone",
+        "1": "Stone",
+        "2": "Stone",
+        "3": "Stone"
+      },
+      "3": {
+        "0": "Glass",
+        "1": "Glass",
+        "2": "Dirt",
+        "3": "Dirt"
+      }
+    },
+    "1": {
+      
+    },
+    "2": {
+
+    },
+    "3": {
+
+    }
+  }
+}

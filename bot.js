@@ -1,13 +1,13 @@
 const mineflayer = require("mineflayer")
 const pathfinder = require("mineflayer-pathfinder").pathfinder
 const Movements = require("mineflayer-pathfinder").Movements
-const { GoalNear } = require("mineflayer-pathfinder").goals
+const { GoalXZ } = require("mineflayer-pathfinder").goals
 const v = require("vec3")
 
 const bot = mineflayer.createBot({
   host: "192.168.1.178",
   username: "FaytheWorker001",
-  port: 55897,
+  port: 56588,
   // password: "",
   // version: false,
   // auth: "mojang"
@@ -16,83 +16,48 @@ const bot = mineflayer.createBot({
 bot.loadPlugin(pathfinder)
 
 let mcData
-bot.once('inject_allowed', () => {
-  mcData = require('minecraft-data')(bot.version)
+bot.once("inject_allowed", () => {
+  mcData = require("minecraft-data")(bot.version)
 })
 
 bot.on("chat", (username, message) => {
   if (username == bot.username) return
   switch (true) {
-    case /^chest$/.test(message):
-      watchChest(["chest", "trapped_chest"])
-      break
-
     // Temporary testing commands
     case /^home$/.test(message):
       goHome()
       break
     
-    case /^sort$/.test(message):
+    case /^march$/.test(message):
       inventoryToChests()
-      break
   }
 })
 
-function goHome() {
-  // Temporary testing function
-  // Replacing /warp home for Hypixel
-
-  let target = bot.findBlock({
-    matching: 152,
-    maxDistance: 128
-  })
-  if (target) {
-    let target = bot.findBlock({
-      matching: 152,
-      maxDistance: 128
-    })
-    
-    moveTo(target.position)
-  } else {
-    return
-  }
-}
-
-async function inventoryToChests() {
-  // Sort away all inventory items into chests
-
-  let items = bot.inventory.items()
-  console.log(items)
-  let item = itemByName(items, "cobblestone")
-  console.log(item)
-  console.log(findChest(item))
-}
-
-function findChest(item) {
-  let chestSigns = bot.findBlocks({
+function inventoryToChests() {
+  march()
+  let sign = bot.findBlock({
     matching: mcData.blocksByName["wall_sign"].id,
-    maxDistance: 256,
-    count: 256
+    maxDistance: 3
   })
-  console.log(chestSigns)
+  if (!sign) { return }
 
-  let sign
-  for (var i = 0; i < chestSigns.length; i++) {
-    sign = bot.blockAt(chestSigns[i])
-    if (sign.signText.includes(item.displayName)) {
-      return getChestSign(sign.position)
+  if (Math.ceil(sign.position.z) == Math.ceil(bot.entity.position.z)) {
+    for (let i = 0; i < bot.inventory.items().length; i++) {
+      if (sign.signText.includes(bot.inventory.items()[i].displayName)) {
+        watchChest(v(sign.position.x+1, sign.position.y, sign.position.z))
+        
+      }
     }
   }
-  return null
 }
 
-async function watchChest(blocks=[]) {
-  let chestToOpen = bot.findBlock({
-    matching: blocks.map(name => mcData.blocksByName[name].id),
-    maxDistance: 6
-  })
+async function march() {
+  moveTo(v(bot.entity.position.x, bot.entity.position.y, bot.entity.position.z+1))
+}
+
+async function watchChest(chestPos) {
+  let chestToOpen = bot.blockAt(chestPos)
   const chest = await bot.openChest(chestToOpen)
-  console.log(chest.containerItems())
 
   function closeChest() {
     chest.close()
@@ -114,25 +79,24 @@ async function watchChest(blocks=[]) {
   }
 }
 
-async function getChestSign(signPos) {
-  // Find the chest that the sign is attached to
+function goHome() {
+  // Temporary testing function
+  // Replacing /warp home for Hypixel
 
-  bot.lookAt(signPos)
-  let direction = isFacing()
-  let pos
-  if (direction == "north") {
-    pos = v(signPos.x, signPos.y, signPos.z-1)
-  } else if (direction == "east") {
-    pos = v(signPos.x, signPos.y, signPos.z+1)
-  } else if (direction == "south") {
-    pos = v(signPos.x-1, signPos.y, signPos.z)
-  } else if (direction == "west") {
-    pos = v(signPos.x-1, signPos.y, signPos.z)
+  let target = bot.findBlock({
+    matching: 152,
+    maxDistance: 128
+  })
+  if (target) {
+    let target = bot.findBlock({
+      matching: 152,
+      maxDistance: 128
+    })
+    
+    moveTo(target.position)
   } else {
-    pos = null
+    return
   }
-  
-  return pos
 }
 
 async function moveTo(pos) {
@@ -141,41 +105,5 @@ async function moveTo(pos) {
   const defaultMove = new Movements(bot, mcData)
 
   bot.pathfinder.setMovements(defaultMove)
-  bot.pathfinder.setGoal(new GoalNear(pos.x, pos.y+1, pos.z, 0))
-}
-
-function itemInSign(name) {
-  ;
-}
-
-function isFacing() {
-  // Algorithm to tell which way the bot is facing
-  // Used to determine what the position of the chest behind the sign is
-
-  let blockPos = bot.blockAtCursor().position
-  let playerPos = bot.entity.position
-
-  if (playerPos.x > blockPos.x) {
-    return "west"
-  } else if (playerPos.x < blockPos.x) {
-    return "east"
-  } else if (playerPos.z > blockPos.z) {
-    return "north"
-  } else if (playerPos.z < blockPos.z) {
-    return "south"
-  } else {
-    return null
-  }
-}
-
-function itemByName(items, name) {
-  // Get item by name from a list of items
-
-  let item
-  let i
-  for (i = 0; i < items.length; i++) {
-    item = items[i]
-    if (item && item.name == name) return item
-  }
-  return null
+  bot.pathfinder.setGoal(new GoalXZ(pos.x, pos.z))
 }
